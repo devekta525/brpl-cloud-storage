@@ -5,6 +5,7 @@ node_modules/
 .env.development
 .env.local
 .env.*.local
+# uploads/
 npm-debug.log
 yarn-error.log
 package-lock.json

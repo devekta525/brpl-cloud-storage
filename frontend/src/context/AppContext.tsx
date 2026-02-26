@@ -52,14 +52,18 @@ const mapBucket = (b: any): Bucket => ({
   name: b.name,
   region: b.region,
   createdAt: b.createdAt,
-  files: b.files ? b.files.map((f: any) => ({
-    id: f._id,
-    name: f.name,
-    type: f.type,
-    size: f.size,
-    dataUrl: f.dataUrl,
-    uploadedAt: f.uploadedAt,
-  })) : [],
+  files: b.files ? b.files.map((f: any) => {
+    const isBase64 = f.dataUrl && f.dataUrl.startsWith("data:");
+    const dynamicUrl = `${API_URL}/public/${b.name}/${f.name}`;
+    return {
+      id: f._id,
+      name: f.name,
+      type: f.type,
+      size: f.size,
+      dataUrl: isBase64 ? f.dataUrl : dynamicUrl,
+      uploadedAt: f.uploadedAt,
+    };
+  }) : [],
 });
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

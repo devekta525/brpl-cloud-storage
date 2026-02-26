@@ -62,7 +62,7 @@ export const addFileToBucket = async (req, res) => {
         fs.writeFileSync(filePath, match[2], "base64");
       }
 
-      const file = { name, type, size, dataUrl: `http://localhost:5000/api/public/${bucket.name}/${name}` };
+      const file = { name, type, size, dataUrl: `/api/public/${bucket.name}/${name}` };
       bucket.files.push(file);
       await bucket.save();
       res.status(201).json(bucket);
