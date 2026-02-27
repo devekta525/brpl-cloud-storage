@@ -57,9 +57,14 @@ export const addFileToBucket = async (req, res) => {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
       const filePath = path.join(dir, name);
-      const match = dataUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
-      if (match) {
-        fs.writeFileSync(filePath, match[2], "base64");
+      
+      if (req.file) {
+        fs.renameSync(req.file.path, filePath);
+      } else if (dataUrl) {
+        const match = dataUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
+        if (match) {
+          fs.writeFileSync(filePath, match[2], "base64");
+        }
       }
 
       const file = { name, type, size, dataUrl: `/api/public/${bucket.name}/${name}` };
@@ -67,9 +72,11 @@ export const addFileToBucket = async (req, res) => {
       await bucket.save();
       res.status(201).json(bucket);
     } else {
+      if (req.file) fs.unlinkSync(req.file.path);
       res.status(404).json({ message: "Bucket not found or unauthorized" });
     }
   } catch (error) {
+    if (req.file) fs.unlinkSync(req.file.path);
     console.error(error);
     res.status(500).json({ message: error.message || "Server Error" });
   }

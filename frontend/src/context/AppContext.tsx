@@ -34,7 +34,7 @@ interface AppContextType {
   logout: () => void;
   createBucket: (name: string, region: string) => Promise<void>;
   deleteBucket: (id: string) => Promise<void>;
-  addFileToBucket: (bucketId: string, file: Omit<StoredFile, "id" | "uploadedAt">) => Promise<void>;
+  addFileToBucket: (bucketId: string, file: File) => Promise<boolean>;
   deleteFileFromBucket: (bucketId: string, fileId: string) => Promise<void>;
   loading: boolean;
 }
@@ -177,31 +177,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [user]);
 
-  const addFileToBucket = useCallback(async (bucketId: string, file: Omit<StoredFile, "id" | "uploadedAt">) => {
-    if (!user) return;
+  const addFileToBucket = useCallback(async (bucketId: string, file: File) => {
+    if (!user) return false;
     try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", file.name);
+      formData.append("type", file.type);
+      formData.append("size", file.size.toString());
+
       const res = await fetch(`${API_URL}/buckets/${bucketId}/files`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${user.token}`,
         },
-        body: JSON.stringify({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          dataUrl: file.dataUrl
-        }),
+        body: formData,
       });
       if (res.ok) {
         const updatedB = await res.json();
         setBuckets(prev => prev.map(b => b.id === bucketId ? mapBucket(updatedB) : b));
-        toast.success("File uploaded");
+        return true;
       } else {
         toast.error("Failed to upload file");
+        return false;
       }
     } catch {
       toast.error("Network error");
+      return false;
     }
   }, [user]);
 

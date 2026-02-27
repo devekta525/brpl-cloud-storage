@@ -24,25 +24,16 @@ const BucketDetail = () => {
     input.type = "file";
     input.multiple = true;
     input.accept = "image/*,video/*";
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (!files || !bucketId) return;
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const storedFile: StoredFile = {
-            id: crypto.randomUUID(),
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            dataUrl: reader.result as string,
-            uploadedAt: new Date().toISOString(),
-          };
-          addFileToBucket(bucketId, storedFile);
+
+      for (const file of Array.from(files)) {
+        const success = await addFileToBucket(bucketId, file);
+        if (success) {
           toast.success(`Uploaded ${file.name}`);
-        };
-        reader.readAsDataURL(file);
-      });
+        }
+      }
     };
     input.click();
   }, [bucketId, addFileToBucket]);
