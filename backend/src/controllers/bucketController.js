@@ -3,16 +3,16 @@ import Bucket, { FileItem } from "../models/Bucket.js";
 // Helper function to recursively populate file items
 const populateFileItems = async (fileItemIds) => {
   if (!fileItemIds || fileItemIds.length === 0) return [];
-  
+
   const items = await FileItem.find({ _id: { $in: fileItemIds } });
-  
+
   // Recursively populate children for each item
   for (const item of items) {
     if (item.children && item.children.length > 0) {
       item.children = await populateFileItems(item.children);
     }
   }
-  
+
   return items;
 };
 
@@ -26,14 +26,14 @@ export const getBuckets = async (req, res) => {
         recursive: true // This won't work with mongoose, so we'll do it manually
       }
     });
-    
+
     // Manually populate nested children
     for (const bucket of buckets) {
       if (bucket.files && bucket.files.length > 0) {
         bucket.files = await populateFileItems(bucket.files);
       }
     }
-    
+
     res.json(buckets);
   } catch (error) {
     console.error(error);
@@ -94,7 +94,7 @@ export const addFileToBucket = async (req, res) => {
     // Build full path for file storage
     let fullPath = name;
     let parentFolder = null;
-    
+
     if (parentId) {
       parentFolder = await FileItem.findById(parentId);
       if (!parentFolder || parentFolder.type !== "folder") {
@@ -121,7 +121,7 @@ export const addFileToBucket = async (req, res) => {
     if (!fs.existsSync(fileDir)) {
       fs.mkdirSync(fileDir, { recursive: true });
     }
-    
+
     if (req.file) {
       fs.renameSync(req.file.path, filePath);
     } else if (dataUrl) {
@@ -158,6 +158,7 @@ export const addFileToBucket = async (req, res) => {
       populate: { path: 'children' }
     });
     populatedBucket.files = await populateFileItems(populatedBucket.files);
+    populatedBucket.currentFile = fileItem;
 
     res.status(201).json(populatedBucket);
   } catch (error) {
@@ -254,7 +255,7 @@ export const createFolder = async (req, res) => {
       if (!parentFolder || parentFolder.type !== "folder") {
         return res.status(400).json({ message: "Invalid parent folder" });
       }
-      existingItems = await FileItem.find({ 
+      existingItems = await FileItem.find({
         parent: parentId,
         name: cleanFolderName,
         type: "folder"
@@ -262,7 +263,7 @@ export const createFolder = async (req, res) => {
     } else {
       // Check root level
       const rootItems = await FileItem.find({ _id: { $in: bucket.files } });
-      existingItems = rootItems.filter(item => 
+      existingItems = rootItems.filter(item =>
         item.name === cleanFolderName && item.type === "folder"
       );
     }
@@ -343,7 +344,7 @@ const findFileByPath = async (fileItems, targetPath) => {
       currentItems = currentItem.children || [];
     }
   }
-  
+
   return currentItem;
 };
 
@@ -352,7 +353,7 @@ export const getFileByName = async (req, res) => {
   try {
     const { bucketName } = req.params;
     let fileName = req.params.fileName;
-    
+
     // In Express 5 wildcard routes (*fileName) pass the parameter as an array of path segments
     if (Array.isArray(fileName)) {
       fileName = fileName.join('/');
@@ -362,9 +363,9 @@ export const getFileByName = async (req, res) => {
 
     // Populate files and search recursively
     const populatedFiles = await populateFileItems(bucket.files);
-    console.log('getFileByName inputs:', {bucket: bucketName, fileName, isArray: Array.isArray(req.params.fileName), param: req.params.fileName});
+    console.log('getFileByName inputs:', { bucket: bucketName, fileName, isArray: Array.isArray(req.params.fileName), param: req.params.fileName });
     const file = await findFileByPath(populatedFiles, fileName);
-    
+
     if (!file) {
       console.log('findFileByPath returned null for:', fileName);
       return res.status(404).send('File not found');
@@ -372,7 +373,7 @@ export const getFileByName = async (req, res) => {
 
     // Extract the actual file path from dataUrl or construct it
     let filePath = path.join(process.cwd(), "uploads", bucketName, fileName);
-    
+
     // Try to get path from dataUrl if available
     if (file.dataUrl) {
       const urlPath = file.dataUrl.replace(`/api/public/${bucketName}/`, '');
