@@ -43,6 +43,11 @@ const bucketSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "FileItem"
     }],
+
+    currentFile: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
+    }
   },
   { timestamps: true }
 );

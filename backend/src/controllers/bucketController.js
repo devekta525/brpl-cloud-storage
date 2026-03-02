@@ -158,7 +158,7 @@ export const addFileToBucket = async (req, res) => {
       populate: { path: 'children' }
     });
     populatedBucket.files = await populateFileItems(populatedBucket.files);
-    populatedBucket.currentFile = fileItem;
+    populatedBucket.currentFile = fileItem.toJSON();
 
     res.status(201).json(populatedBucket);
   } catch (error) {
