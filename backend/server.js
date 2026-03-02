@@ -24,7 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/buckets", bucketRoutes);
 
 import { getFileByName } from "./src/controllers/bucketController.js";
-app.get("/api/public/:bucketName/:fileName", getFileByName);
+app.get("/api/public/:bucketName/*fileName", getFileByName);
 
 const PORT = process.env.PORT || 5000;
 

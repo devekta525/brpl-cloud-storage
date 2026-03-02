@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "@/context/AppContext";
 import { Lock, Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
   const { login } = useAppContext();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,11 +18,14 @@ const LoginPage = () => {
       setError("Please enter email and password");
       return;
     }
+    setError("");
     setIsLoading(true);
-    const success = await login(email, password);
+    const result = await login(email, password);
     setIsLoading(false);
-    if (!success) {
-      setError("Invalid credentials");
+    if (result.success) {
+      navigate("/dashboard");
+    } else {
+      setError(result.error || "Invalid credentials");
     }
   };
 

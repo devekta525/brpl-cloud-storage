@@ -10,8 +10,9 @@ interface Props {
 }
 
 const FilePreviewDialog = ({ file, bucketName, region, onClose }: Props) => {
-  const s3Url = `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/public/${bucketName}/${file.name}`;
-  const s3Uri = `s3://${bucketName}/${file.name}`;
+  const baseUrl = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/api$/, "");
+  const s3Url = `${baseUrl}${file.dataUrl}`;
+  const s3Uri = `s3://${bucketName}${file.dataUrl.split(`/api/public/${bucketName}`)[1]}`;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);

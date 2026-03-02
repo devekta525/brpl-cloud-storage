@@ -1,9 +1,12 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider, useAppContext } from "@/context/AppContext";
+import { ApiException } from "@/lib/api";
+import { toast } from "sonner";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import CreateBucket from "./pages/CreateBucket";
@@ -11,7 +14,40 @@ import BucketDetail from "./pages/BucketDetail";
 import NotFound from "./pages/NotFound";
 import GenericPage from "./pages/GenericPage";
 
-const queryClient = new QueryClient();
+// Create QueryClient with global error handling
+const createQueryClient = (logout: () => void) => {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: (failureCount, error) => {
+          // Don't retry on 401 (unauthorized) errors
+          if (error instanceof ApiException && error.status === 401) {
+            return false;
+          }
+          return failureCount < 2;
+        },
+        onError: (error) => {
+          // Handle 401 errors globally - logout user
+          if (error instanceof ApiException && error.status === 401) {
+            logout();
+            toast.error("Session expired. Please login again.");
+          }
+        },
+        staleTime: 30 * 1000, // 30 seconds
+        gcTime: 5 * 60 * 1000, // 5 minutes
+      },
+      mutations: {
+        onError: (error) => {
+          // Handle 401 errors globally - logout user
+          if (error instanceof ApiException && error.status === 401) {
+            logout();
+            toast.error("Session expired. Please login again.");
+          }
+        },
+      },
+    },
+  });
+};
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAppContext();
@@ -43,18 +79,34 @@ const AppRoutes = () => {
   );
 };
 
+const AppContent = () => {
+  const { logout, user } = useAppContext();
+  const [queryClient] = React.useState(() => createQueryClient(logout));
+  
+  // Clear cache when user logs out
+  React.useEffect(() => {
+    if (!user) {
+      queryClient.clear();
+    }
+  }, [user, queryClient]);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+};
+
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <AppProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AppProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <TooltipProvider>
+    <Toaster />
+    <Sonner />
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  </TooltipProvider>
 );
 
 export default App;

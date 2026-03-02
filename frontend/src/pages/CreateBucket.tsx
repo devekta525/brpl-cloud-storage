@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "@/context/AppContext";
+import { useCreateBucket } from "@/hooks/useBuckets";
 import AwsNavbar from "@/components/AwsNavbar";
 import AwsSidebar from "@/components/AwsSidebar";
 import AwsBreadcrumb from "@/components/AwsBreadcrumb";
@@ -16,13 +16,13 @@ const REGIONS = [
 ];
 
 const CreateBucket = () => {
-  const { createBucket } = useAppContext();
+  const createBucketMutation = useCreateBucket();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [region, setRegion] = useState(REGIONS[0]);
   const [error, setError] = useState("");
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!name.trim()) {
       setError("Bucket name is required");
       return;
@@ -31,8 +31,14 @@ const CreateBucket = () => {
       setError("Bucket name must be 3-63 chars, lowercase letters, numbers, hyphens, dots");
       return;
     }
-    createBucket(name, region);
-    navigate("/dashboard");
+    
+    try {
+      await createBucketMutation.mutateAsync({ name, region });
+      navigate("/dashboard");
+    } catch (err) {
+      // Error is already handled by the mutation's onError
+      setError(err instanceof Error ? err.message : "Failed to create bucket");
+    }
   };
 
   return (
@@ -79,8 +85,20 @@ const CreateBucket = () => {
               </div>
             </div>
             <div className="px-6 py-4 border-t border-border flex justify-end gap-2">
-              <button onClick={() => navigate("/dashboard")} className="aws-btn-secondary">Cancel</button>
-              <button onClick={handleCreate} className="aws-btn-primary">Create bucket</button>
+              <button 
+                onClick={() => navigate("/dashboard")} 
+                disabled={createBucketMutation.isPending}
+                className="aws-btn-secondary disabled:opacity-40"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreate} 
+                disabled={createBucketMutation.isPending}
+                className="aws-btn-primary disabled:opacity-40"
+              >
+                {createBucketMutation.isPending ? "Creating..." : "Create bucket"}
+              </button>
             </div>
           </div>
         </main>

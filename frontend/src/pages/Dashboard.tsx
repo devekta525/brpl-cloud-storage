@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "@/context/AppContext";
+import { useBuckets, useDeleteBucket } from "@/hooks/useBuckets";
 import AwsNavbar from "@/components/AwsNavbar";
 import AwsSidebar from "@/components/AwsSidebar";
 import AwsBreadcrumb from "@/components/AwsBreadcrumb";
 import { RefreshCw, Search, Trash2, Plus, Info } from "lucide-react";
 
 const Dashboard = () => {
-  const { buckets, deleteBucket } = useAppContext();
+  const { data: buckets = [], isLoading, refetch } = useBuckets();
+  const deleteBucketMutation = useDeleteBucket();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -18,9 +19,16 @@ const Dashboard = () => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   };
 
-  const handleDelete = () => {
-    selected.forEach(id => deleteBucket(id));
+  const handleDelete = async () => {
+    // Delete all selected buckets sequentially to avoid race conditions
+    for (const id of selected) {
+      await deleteBucketMutation.mutateAsync(id);
+    }
     setSelected([]);
+  };
+
+  const handleRefresh = () => {
+    refetch();
   };
 
   return (
@@ -47,10 +55,17 @@ const Dashboard = () => {
                 <Info size={12} className="text-muted-foreground" />
               </div>
               <div className="flex items-center gap-2">
-                <button className="aws-btn-secondary p-1.5"><RefreshCw size={14} /></button>
+                <button 
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  className="aws-btn-secondary p-1.5 disabled:opacity-40"
+                  title="Refresh"
+                >
+                  <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} />
+                </button>
                 <button
                   onClick={handleDelete}
-                  disabled={selected.length === 0}
+                  disabled={selected.length === 0 || deleteBucketMutation.isPending}
                   className="aws-btn-secondary disabled:opacity-40"
                 >
                   <Trash2 size={14} className="inline mr-1" />Delete
@@ -88,10 +103,16 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 ? (
+                {isLoading ? (
                   <tr>
                     <td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
-                      No buckets found. Create one to get started.
+                      Loading buckets...
+                    </td>
+                  </tr>
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-muted-foreground text-sm">
+                      {search ? "No buckets match your search." : "No buckets found. Create one to get started."}
                     </td>
                   </tr>
                 ) : (

@@ -1,0 +1,97 @@
+[
+  {
+    "_id": "69a295dfdd48cdd4a51b8b71",
+    "name": "one-level",
+    "type": "folder",
+    "size": 0,
+    "dataUrl": "/api/public/brpl-public/one-level/",
+    "children": [
+      {
+        "_id": "69a295ecdd48cdd4a51b8b80",
+        "name": "second-level",
+        "type": "folder",
+        "size": 0,
+        "dataUrl": "/api/public/brpl-public/second-level/",
+        "children": [
+          {
+            "_id": "69a29602dd48cdd4a51b8b95",
+            "name": "third-level",
+            "type": "folder",
+            "size": 0,
+            "dataUrl": "/api/public/brpl-public/one-level/third-level/",
+            "children": [
+              {
+                "_id": "69a29612dd48cdd4a51b8bad",
+                "name": "fourth-level",
+                "type": "folder",
+                "size": 0,
+                "dataUrl": "/api/public/brpl-public/one-level/second-level/fourth-level/",
+                "children": [
+                  {
+                    "_id": "69a2a0c5dd48cdd4a51b8bf6",
+                    "name": "VID_20221106_161322.mp4",
+                    "type": "video/mp4",
+                    "size": 19714734,
+                    "dataUrl": "/api/public/brpl-public/one-level/second-level/third-level/VID_20221106_161322.mp4",
+                    "children": [],
+                    "parent": "69a29612dd48cdd4a51b8bad",
+                    "uploadedAt": "2026-02-28T08:01:09.607Z",
+                    "createdAt": "2026-02-28T08:01:09.608Z",
+                    "updatedAt": "2026-02-28T08:01:09.608Z",
+                    "__v": 0
+                  }
+                ],
+                "parent": "69a29602dd48cdd4a51b8b95",
+                "uploadedAt": "2026-02-28T07:15:30.116Z",
+                "createdAt": "2026-02-28T07:15:30.116Z",
+                "updatedAt": "2026-02-28T08:01:09.649Z",
+                "__v": 1
+              }
+            ],
+            "parent": "69a295ecdd48cdd4a51b8b80",
+            "uploadedAt": "2026-02-28T07:15:14.112Z",
+            "createdAt": "2026-02-28T07:15:14.112Z",
+            "updatedAt": "2026-02-28T07:15:30.182Z",
+            "__v": 1
+          },
+          {
+            "_id": "69a523d78f34f3c6f016bd54",
+            "name": "4961923-uhd_2160_3840_25fps.mp4",
+            "type": "video/mp4",
+            "size": 32945450,
+            "dataUrl": "/api/public/brpl-public/one-level/4961923-uhd_2160_3840_25fps.mp4",
+            "children": [],
+            "parent": "69a295ecdd48cdd4a51b8b80",
+            "uploadedAt": "2026-03-02T05:44:55.911Z",
+            "createdAt": "2026-03-02T05:44:55.912Z",
+            "updatedAt": "2026-03-02T05:44:55.912Z",
+            "__v": 0
+          }
+        ],
+        "parent": "69a295dfdd48cdd4a51b8b71",
+        "uploadedAt": "2026-02-28T07:14:52.434Z",
+        "createdAt": "2026-02-28T07:14:52.434Z",
+        "updatedAt": "2026-03-02T05:44:55.961Z",
+        "__v": 2
+      }
+    ],
+    "parent": null,
+    "uploadedAt": "2026-02-28T07:14:39.388Z",
+    "createdAt": "2026-02-28T07:14:39.389Z",
+    "updatedAt": "2026-02-28T07:14:52.493Z",
+    "__v": 1
+  },
+  {
+    "_id": "69a523c48f34f3c6f016bd3c",
+    "name": "sony-liv-logo-hd.png",
+    "type": "image/png",
+    "size": 495455,
+    "dataUrl": "/api/public/brpl-public/sony-liv-logo-hd.png",
+    "children": [],
+    "parent": null,
+    "uploadedAt": "2026-03-02T05:44:36.226Z",
+    "createdAt": "2026-03-02T05:44:36.233Z",
+    "updatedAt": "2026-03-02T05:44:36.233Z",
+    "__v": 0
+  }
+]
