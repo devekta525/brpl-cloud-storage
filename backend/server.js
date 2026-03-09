@@ -13,8 +13,9 @@ connectDB();
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: "500mb" }));
-app.use(express.urlencoded({ limit: "500mb", extended: true }));
+const bodyLimit = process.env.BODY_LIMIT || "50gb";
+app.use(express.json({ limit: bodyLimit }));
+app.use(express.urlencoded({ limit: bodyLimit, extended: true }));
 
 app.get("/", (req, res) => {
   res.send("API is running...");

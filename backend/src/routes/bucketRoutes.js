@@ -16,23 +16,31 @@ import { protect } from "../middleware/authMiddleware.js";
 const tempDir = path.join(process.cwd(), "uploads", "temp");
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
-// Configure multer with file size limits
-// 500MB file size limit (matches express body parser limit)
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB in bytes
+const MAX_FILE_SIZE = process.env.MAX_FILE_SIZE
+  ? Number(process.env.MAX_FILE_SIZE)
+  : null;
 
-const upload = multer({
+const uploadOptions = {
   dest: tempDir,
-  limits: {
-    fileSize: MAX_FILE_SIZE,
-  },
-});
+};
+
+if (Number.isFinite(MAX_FILE_SIZE) && MAX_FILE_SIZE > 0) {
+  uploadOptions.limits = { fileSize: MAX_FILE_SIZE };
+}
+
+const upload = multer(uploadOptions);
 
 // Error handling middleware for multer errors
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
+      const maxMb = Number.isFinite(MAX_FILE_SIZE)
+        ? MAX_FILE_SIZE / (1024 * 1024)
+        : null;
       return res.status(413).json({
-        message: `File too large. Maximum file size is ${MAX_FILE_SIZE / (1024 * 1024)}MB`,
+        message: maxMb
+          ? `File too large. Maximum file size is ${maxMb}MB`
+          : "File too large.",
       });
     }
     return res.status(400).json({ message: `Upload error: ${err.message}` });
