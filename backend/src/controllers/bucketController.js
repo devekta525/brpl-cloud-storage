@@ -396,9 +396,39 @@ export const getFileByName = async (req, res) => {
     }
 
     if (fs.existsSync(filePath)) {
+
+      const stat = fs.statSync(filePath);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+
       res.setHeader('Content-Type', file.type);
-      const readStream = fs.createReadStream(filePath);
-      return readStream.pipe(res);
+
+      if (range) {
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+        const chunkSize = (end - start) + 1;
+
+        res.writeHead(206, {
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": chunkSize,
+          "Content-Type": file.type
+        });
+
+        const stream = fs.createReadStream(filePath, { start, end });
+        return stream.pipe(res);
+      } else {
+        res.writeHead(200, {
+          "Content-Length": fileSize,
+          "Content-Type": file.type,
+          "Accept-Ranges": "bytes"
+        });
+
+        const stream = fs.createReadStream(filePath);
+        return stream.pipe(res);
+      }
     } else {
       // Fallback for files saved in DB during earlier dev
       const match = file.dataUrl && file.dataUrl.match && file.dataUrl.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
